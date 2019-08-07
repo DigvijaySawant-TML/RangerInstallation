@@ -1,0 +1,133 @@
+===========================================================================================================
+Installation on EC2 119
+cd /usr/local
+
+# Download maven latest distribution tar from apache maven site
+
+wget http://www-eu.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+
+$ tar -xvf apache-maven-3.3.9-bin.tar.gz
+
+
+
+# Add environment varialves in .bashrc
+
+export M2_HOME=/usr/local/apache-maven-3.3.9
+export M2=$M2_HOME/bin
+export PATH=$M2:$PATH
+
+
+
+#Now to test your install of Maven,
+
+$ mvn -version
+
+
+======================================================================================================================
+
+Building Ranger from source
+Get the ranger source 
+
+mkdir ~/dev
+
+cd ~/dev
+
+git clone -b ranger-0.4  git@github.com:apache/incubator-ranger.git ranger
+
+Changes done .bashrc
+export MAVEN_OPTS="-Xmx2048m"
+export _JAVA_OPTIONS="-Xms1024m -Xmx1024m -XX:MaxPermSize=512m"
+export JAVA_HOME=/usr/lib/jvm/java-openjdk
+export PATH=$JAVA_HOME/bin:$PATH
+
+
+
+mkdir ~/dev
+cd ~/dev
+git clone https://github.com/apache/incubator-ranger.git
+cd incubator-ranger
+
+
+Run Maven to build ranger packages
+mvn clean compile package assembly:assembly install
+ 
+ ls target/*.tar.gz
+ 
+ ========================================================================
+ 
+ 
+ Install Solr
+Audit logs are stored in Solr. (Note: if don’t want Solr, we can use DB to store the log https://community.hortonworks.com/questions/27957/does-ranger-05-work-without-solr.html) (we will try for store logs in HDFS)
+
+
+$ cd ~/dev/incubator-ranger/security-admin/contrib/solr_for_audit_setup
+
+Edit install.properties and add the following values,
+
+
+SOLR_INSTALL = true
+SOLR_DOWNLOAD_URL = http://archive.apache.org/dist/lucene/solr/5.2.1/solr-5.2.1.tgz
+SOLR_INSTALL_FOLDER = /opt/solr
+JAVA_HOME = /usr/lib/jvm/java-openjdk
+SOLR_USER = solr
+SOLR_RANGER_HOME = /opt/solr/ranger_audit_server
+SOLR_RANGER_PORT = 6083
+SOLR_DEPLOYMENT = standalone
+SOLR_RANGER_DATA_FOLDER = /opt/solr/ranger_audit_server/data
+SOLR_LOG_FOLDER = /var/log/solr/ranger_audits
+SOLR_MAX_MEM = 2g
+
+
+ 
+
+Run setup script to install solr
+
+$ ./setup.sh
+
+
+Open /opt/solr/ranger_audit_server/install_notes.txt for instructions to start and stop Solr.
+
+Check Solr by accessing http://:6083 from your browser.
+
+================================================================================================================
+Install Ranger Policy Admin
+$ cd /usr/local
+
+$ sudo tar zxvf ~/dev/incubator-ranger/target/ranger-0.7.1-admin.tar.gz
+
+$ sudo ln -s ranger-0.7.1-admin/ ranger-admin
+
+$ cd /usr/local/ranger-admin/
+
+
+Configure Solr
+Update install.properties
+$ cd /usr/local/ranger-admin
+
+$ vi install.properties
+
+# Mysql root
+
+db_root_user=root
+db_root_password=Anu2019@
+db_host=localhost
+
+# DB UserId used for the XASecure schema
+
+db_name=ranger
+db_user=rangeradmin
+db_password=rangeradmin
+
+# audit log
+audit_store=solr
+audit_solr_urls=http://HOST_ADDRESS:6083/solr/ranger_audits
+policymgr_external_url=http://localhost:6080
+
+$ ./setup.sh
+
+=======================================================================================
+
+
+
+ 
+ 
